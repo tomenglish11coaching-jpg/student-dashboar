@@ -39,8 +39,8 @@ const getEmbedUrl = (url: string) => {
     }
 };
 
-export function StudentDetailModal({ isOpen, onClose, student, vocabData, summaryData, rank, allStudents = [] }: StudentModalProps) {
-    if (!isOpen || !student) return null;
+function StudentDetailContent({ isOpen, onClose, student, vocabData, summaryData, rank, allStudents = [] }: StudentModalProps) {
+    // Logic moved to wrapper: if (!isOpen || !student) return null;
 
     // --- Logic: Unique Vocabulary Filter ---
     const uniqueVocabList = useMemo(() => {
@@ -454,556 +454,564 @@ export function StudentDetailModal({ isOpen, onClose, student, vocabData, summar
 
 
     return (
-        <AnimatePresence>
+        <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            onClick={onClose}
+        >
             <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-                onClick={onClose}
+                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-[#0F1214] border border-gray-700 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-3xl relative shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
             >
-                <motion.div
-                    initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-                    className="bg-[#0F1214] border border-gray-700 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-3xl relative shadow-2xl"
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    {/* Header */}
-                    <div className="sticky top-0 bg-[#0F1214]/90 backdrop-blur z-10 p-6 border-b border-gray-800 flex justify-between items-center">
-                        <div className="flex items-center gap-4">
-                            <div className="relative group">
-                                {student.avatarUrl ? (
-                                    <img
-                                        src={student.avatarUrl}
-                                        alt={student.name}
-                                        className="w-14 h-14 rounded-2xl object-cover border-2 border-blue-500/50"
-                                        onError={(e) => {
-                                            e.currentTarget.style.display = 'none';
-                                            const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-                                            if (fallback) fallback.style.display = 'flex';
-                                        }}
-                                    />
-                                ) : null}
-                                <div
-                                    className="w-14 h-14 bg-blue-500/20 rounded-2xl text-blue-500 flex items-center justify-center border-2 border-blue-500/20"
-                                    style={{ display: student.avatarUrl ? 'none' : 'flex' }}
-                                >
-                                    <Trophy size={28} />
-                                </div>
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <h2 className="text-2xl font-bold text-white">
-                                        {student['Student names'] || student['Student names '] || student.name}
-                                    </h2>
-                                    <div className="flex items-center gap-1">
-                                        {ALL_POTENTIAL_BADGES.map((potential) => {
-                                            const earned = student.badges?.find((b: any) => b.id === potential.id);
-                                            const IconComponent = potential.icon;
-                                            const level = earned?.level || 1;
-                                            const isLocked = !earned;
-
-                                            const size = 14 + (level - 1) * 4;
-                                            const glowIntensity = isLocked ? 0 : (level === 1 ? 5 : level * 10);
-                                            const hasSparkles = level >= 3 && !isLocked;
-                                            const isLevel4 = level >= 4 && !isLocked;
-
-                                            const colorClass = potential.color === 'purple' ? 'text-purple-500' :
-                                                potential.color === 'blue' ? 'text-blue-500' :
-                                                    potential.color === 'yellow' ? 'text-yellow-500' :
-                                                        potential.color === 'orange' ? 'text-orange-500' :
-                                                            potential.color === 'green' ? 'text-green-500' : 'text-gray-400';
-
-                                            const shadowHex = potential.color === 'purple' ? '#a855f7' :
-                                                potential.color === 'blue' ? '#3b82f6' :
-                                                    potential.color === 'yellow' ? '#eab308' :
-                                                        potential.color === 'orange' ? '#f97316' :
-                                                            potential.color === 'green' ? '#22c55e' : '#9ca3af';
-
-                                            return (
-                                                <div
-                                                    key={potential.id}
-                                                    className="group/header-badge relative cursor-pointer"
-                                                    onClick={() => setSelectedBadgeId(potential.id)}
-                                                >
-                                                    <motion.div
-                                                        className={clsx(
-                                                            "p-1.5 rounded-full transition-all relative",
-                                                            isLocked ? "bg-white/5 opacity-20 grayscale" : "bg-white/5 hover:bg-white/10",
-                                                            !isLocked && colorClass,
-                                                            isLevel4 && "animate-pulse"
-                                                        )}
-                                                        animate={isLevel4 ? { rotate: [0, 5, -5, 0] } : {}}
-                                                        transition={isLevel4 ? { repeat: Infinity, duration: 4, ease: "easeInOut" } : {}}
-                                                        style={{
-                                                            boxShadow: isLocked ? 'none' : `0 0 ${glowIntensity}px ${shadowHex}`
-                                                        }}
-                                                    >
-                                                        <IconComponent size={size} />
-
-                                                        {hasSparkles && (
-                                                            <div className="absolute inset-0 pointer-events-none">
-                                                                {[...Array(level * 2)].map((_, i) => (
-                                                                    <motion.div
-                                                                        key={i}
-                                                                        className="absolute w-1 h-1 bg-white rounded-full"
-                                                                        initial={{ x: "50%", y: "50%", opacity: 1, scale: 0 }}
-                                                                        animate={{
-                                                                            x: `${50 + (Math.random() - 0.5) * 150}%`,
-                                                                            y: `${50 + (Math.random() - 0.5) * 150}%`,
-                                                                            opacity: 0,
-                                                                            scale: 1.5
-                                                                        }}
-                                                                        transition={{ repeat: Infinity, duration: 1 + Math.random(), delay: Math.random() * 2 }}
-                                                                    />
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </motion.div>
-                                                    <div className="absolute bottom-full left-0 mb-3 px-3 py-1.5 bg-gray-900/95 backdrop-blur text-white text-[11px] font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/header-badge:opacity-100 transition-all pointer-events-none z-[150] shadow-xl border border-white/10">
-                                                        {earned ? earned.tooltip : `Locked: ${potential.label}`}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                                <p className="text-gray-400 text-sm">Performance Analysis & Progress</p>
+                {/* Header */}
+                <div className="sticky top-0 bg-[#0F1214]/90 backdrop-blur z-10 p-6 border-b border-gray-800 flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                        <div className="relative group">
+                            {student.avatarUrl ? (
+                                <img
+                                    src={student.avatarUrl}
+                                    alt={student.name}
+                                    className="w-14 h-14 rounded-2xl object-cover border-2 border-blue-500/50"
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                        const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                        if (fallback) fallback.style.display = 'flex';
+                                    }}
+                                />
+                            ) : null}
+                            <div
+                                className="w-14 h-14 bg-blue-500/20 rounded-2xl text-blue-500 flex items-center justify-center border-2 border-blue-500/20"
+                                style={{ display: student.avatarUrl ? 'none' : 'flex' }}
+                            >
+                                <Trophy size={28} />
                             </div>
                         </div>
-                        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white">
-                            <X size={24} />
-                        </button>
-                    </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-2xl font-bold text-white">
+                                    {student['Student names'] || student['Student names '] || student.name}
+                                </h2>
+                                <div className="flex items-center gap-1">
+                                    {ALL_POTENTIAL_BADGES.map((potential) => {
+                                        const earned = student.badges?.find((b: any) => b.id === potential.id);
+                                        const IconComponent = potential.icon;
+                                        const level = earned?.level || 1;
+                                        const isLocked = !earned;
 
-                    <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        const size = 14 + (level - 1) * 4;
+                                        const glowIntensity = isLocked ? 0 : (level === 1 ? 5 : level * 10);
+                                        const hasSparkles = level >= 3 && !isLocked;
+                                        const isLevel4 = level >= 4 && !isLocked;
 
-                        {/* Top Prize Section (Only for Top 3) */}
-                        {rank && rank <= 3 && (
-                            <div className="col-span-1 lg:col-span-2">
-                                <motion.div
-                                    initial={{ y: 20, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    className={clsx(
-                                        "relative overflow-hidden rounded-3xl p-6 border",
-                                        rank === 1 ? "bg-gradient-to-br from-yellow-500/20 to-orange-500/10 border-yellow-500/30" :
-                                            rank === 2 ? "bg-gradient-to-br from-slate-400/20 to-slate-600/10 border-slate-400/30" :
-                                                "bg-gradient-to-br from-orange-500/20 to-red-500/10 border-orange-500/30"
-                                    )}
-                                >
-                                    {/* Decorative Background Elements */}
-                                    <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/5 rounded-full blur-3xl" />
-                                    <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
+                                        const colorClass = potential.color === 'purple' ? 'text-purple-500' :
+                                            potential.color === 'blue' ? 'text-blue-500' :
+                                                potential.color === 'yellow' ? 'text-yellow-500' :
+                                                    potential.color === 'orange' ? 'text-orange-500' :
+                                                        potential.color === 'green' ? 'text-green-500' : 'text-gray-400';
 
-                                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                        <div className="flex items-center gap-5">
-                                            <div className={clsx(
-                                                "w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg",
-                                                rank === 1 ? "bg-yellow-500 text-white" :
-                                                    rank === 2 ? "bg-slate-400 text-white" :
-                                                        "bg-orange-500 text-white"
-                                            )}>
-                                                <Ticket size={32} />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-xl font-black text-white uppercase tracking-tight mb-1">
-                                                    Hội Viên Ưu Tú - Quà Tặng Top {rank}
-                                                </h3>
-                                                <p className="text-gray-400 text-sm max-w-md">
-                                                    Duy trì vị trí trong <b>Top 3</b> để nhận ưu đãi đặc biệt khi đăng ký khóa học tiếp theo.
-                                                </p>
-                                            </div>
-                                        </div>
+                                        const shadowHex = potential.color === 'purple' ? '#a855f7' :
+                                            potential.color === 'blue' ? '#3b82f6' :
+                                                potential.color === 'yellow' ? '#eab308' :
+                                                    potential.color === 'orange' ? '#f97316' :
+                                                        potential.color === 'green' ? '#22c55e' : '#9ca3af';
 
-                                        <div className="flex flex-col items-center justify-center min-w-[120px]">
-                                            <div className="flex items-baseline gap-2">
-                                                <span className={clsx(
-                                                    "text-4xl font-black",
-                                                    rank === 1 ? "text-yellow-400" :
-                                                        rank === 2 ? "text-slate-300" :
-                                                            "text-orange-400"
-                                                )}>
-                                                    -{rank === 1 ? "50%" : rank === 2 ? "40%" : "30%"}
-                                                </span>
-                                            </div>
-                                            <div className="bg-white/10 px-3 py-1 rounded-full border border-white/10 mt-2">
-                                                <span className="text-xs font-bold text-white uppercase tracking-wider">
-                                                    Ưu đãi học thêm
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Conditions Banner */}
-                                    <div className="mt-6 pt-6 border-t border-white/10 flex flex-wrap gap-4">
-                                        <div className="flex items-center gap-2 text-[11px] text-gray-400">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                                            Áp dụng khi đăng ký khóa học mới bất kỳ
-                                        </div>
-                                        <div className="flex items-center gap-2 text-[11px] text-gray-400">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                            Giảm trực tiếp vào gói 10 buổi học thêm
-                                        </div>
-                                        <div className="flex items-center gap-2 text-[11px] text-gray-400">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                                            Chỉ dành cho học viên xuất sắc nhất
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        )}
-
-                        {/* Row 1: Achievement & Submissions */}
-                        <div className="col-span-1 lg:col-span-2 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Achievement Section */}
-                            <Card className="lg:col-span-1 overflow-visible" title="Huy hiệu">
-                                <div className="space-y-6">
-                                    {/* Current Badges Inventory */}
-                                    <div className="flex flex-wrap gap-3">
-                                        {ALL_POTENTIAL_BADGES.map((potential) => {
-                                            const earned = student.badges?.find((b: any) => b.id === potential.id);
-                                            const IconComponent = potential.icon;
-                                            const level = earned?.level || 1;
-                                            const isLocked = !earned;
-                                            const iconSize = 24 + (level - 1) * 4; // 24, 28, 32, 36
-                                            const glowIntensity = isLocked ? 0 : (level === 1 ? 5 : level * 10);
-
-                                            const colorClass = potential.color === 'purple' ? 'text-purple-500' :
-                                                potential.color === 'blue' ? 'text-blue-500' :
-                                                    potential.color === 'yellow' ? 'text-yellow-500' :
-                                                        potential.color === 'orange' ? 'text-orange-500' :
-                                                            potential.color === 'green' ? 'text-green-500' : 'text-gray-400';
-
-                                            const shadowHex = potential.color === 'purple' ? '#a855f7' :
-                                                potential.color === 'blue' ? '#3b82f6' :
-                                                    potential.color === 'yellow' ? '#eab308' :
-                                                        potential.color === 'orange' ? '#f97316' :
-                                                            potential.color === 'green' ? '#22c55e' : '#9ca3af';
-
-                                            const isActive = activeBadge?.id === potential.id;
-
-                                            return (
-                                                <div
-                                                    key={potential.id}
-                                                    className="group/badge-modal relative cursor-pointer"
-                                                    onClick={() => setSelectedBadgeId(potential.id)}
-                                                >
-                                                    <motion.div
-                                                        className={clsx(
-                                                            "p-3 rounded-2xl border transition-all",
-                                                            isLocked ? "bg-white/5 border-white/5 opacity-20 grayscale" : "bg-white/5 border-white/10",
-                                                            !isLocked && colorClass,
-                                                            isActive && "ring-2 ring-offset-2 ring-offset-[#0F1214] border-transparent scale-110",
-                                                            isActive && (potential.color === 'purple' ? 'ring-purple-500' :
-                                                                potential.color === 'blue' ? 'ring-blue-500' :
-                                                                    potential.color === 'yellow' ? 'ring-yellow-500' :
-                                                                        potential.color === 'orange' ? 'ring-orange-500' :
-                                                                            potential.color === 'green' ? 'ring-green-500' : 'ring-white')
-                                                        )}
-                                                        style={{ boxShadow: isLocked ? 'none' : `0 0 ${glowIntensity}px ${shadowHex}` }}
-                                                        whileHover={{ scale: isActive ? 1.1 : 1.05 }}
-                                                    >
-                                                        <IconComponent size={iconSize} />
-                                                    </motion.div>
-                                                    <div className="absolute bottom-full left-0 mb-3 px-3 py-1.5 bg-gray-900/95 backdrop-blur text-white text-[11px] font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/badge-modal:opacity-100 transition-all pointer-events-none z-[150] shadow-xl border border-white/10">
-                                                        {earned ? earned.tooltip : `Locked Achievement: ${potential.label}`}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-
-                                    {/* Progress Trackers */}
-                                    <div className="space-y-4">
-                                        {activeBadge ? (
-                                            <>
-                                                {/* Active Selection Details */}
-                                                <motion.div
-                                                    key={`${activeBadge.id}-${viewedLevel}`}
-                                                    initial={{ opacity: 0, x: 20 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    className={clsx("p-4 rounded-2xl border", activeBadge.color === 'purple' ? "bg-purple-500/5 border-purple-500/10" : activeBadge.color === 'yellow' ? "bg-yellow-500/5 border-yellow-500/10" : "bg-blue-500/5 border-blue-500/10")}
-                                                >
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="relative">
-                                                                {/* Dynamic Visual Icon based on viewedLevel */}
-                                                                {(() => {
-                                                                    const IconComp = activeBadge.icon;
-                                                                    const level = viewedLevel || 1;
-                                                                    const size = 20 + (level - 1) * 4;
-                                                                    const glowIntensity = level === 1 ? 5 : level * 12;
-                                                                    const hasSparkles = level >= 3;
-                                                                    const isLvl4 = level >= 4;
-                                                                    const shadowHex = activeBadge.color === 'purple' ? '#a855f7' : activeBadge.color === 'blue' ? '#3b82f6' : activeBadge.color === 'yellow' ? '#eab308' : '#9ca3af';
-
-                                                                    return (
-                                                                        <motion.div
-                                                                            animate={isLvl4 ? { scale: [1, 1.1, 1] } : {}}
-                                                                            transition={isLvl4 ? { repeat: Infinity, duration: 2, ease: "easeInOut" } : {}}
-                                                                            style={{
-                                                                                boxShadow: `0 0 ${glowIntensity}px ${shadowHex}`,
-                                                                                border: isLvl4 ? `1px solid ${shadowHex}` : 'none',
-                                                                                width: 44, height: 44
-                                                                            }}
-                                                                            className={clsx(
-                                                                                "rounded-xl flex items-center justify-center bg-white/5 relative overflow-visible",
-                                                                                activeBadge.color === 'purple' ? "text-purple-500" : activeBadge.color === 'yellow' ? "text-yellow-500" : "text-blue-500"
-                                                                            )}
-                                                                        >
-                                                                            <IconComp size={size} />
-                                                                            {hasSparkles && (
-                                                                                <div className="absolute inset-0 pointer-events-none">
-                                                                                    {/* Fairy Dust / Halo Effect - Positioned around the icon */}
-                                                                                    {[...Array(level * 4)].map((_, i) => {
-                                                                                        const angle = (i / (level * 4)) * Math.PI * 2;
-                                                                                        // Distribute sparkles in a halo slightly larger than the container
-                                                                                        const distance = 120 + Math.random() * 40; // 120-160% from center
-                                                                                        const x = 50 + Math.cos(angle) * 35; // ~35px radius
-                                                                                        const y = 50 + Math.sin(angle) * 35;
-
-                                                                                        return (
-                                                                                            <motion.div
-                                                                                                key={i}
-                                                                                                className={clsx(
-                                                                                                    "absolute rounded-full z-10",
-                                                                                                    activeBadge.color === 'purple' ? "bg-purple-300" : activeBadge.color === 'yellow' ? "bg-yellow-200" : "bg-blue-300"
-                                                                                                )}
-                                                                                                initial={{ opacity: 0, scale: 0 }}
-                                                                                                animate={{
-                                                                                                    opacity: [0, 1, 0, 0],
-                                                                                                    scale: [0, 1, 0.5, 0]
-                                                                                                }}
-                                                                                                transition={{
-                                                                                                    repeat: Infinity,
-                                                                                                    duration: 2 + Math.random(),
-                                                                                                    delay: Math.random() * 2,
-                                                                                                    ease: "easeInOut"
-                                                                                                }}
-                                                                                                style={{
-                                                                                                    top: `${y}%`,
-                                                                                                    left: `${x}%`,
-                                                                                                    width: Math.random() * 3 + 2, // 2-5px size
-                                                                                                    height: Math.random() * 3 + 2,
-                                                                                                    boxShadow: activeBadge.color === 'purple' ? '0 0 6px 1px rgba(168, 85, 247, 0.8)' :
-                                                                                                        activeBadge.color === 'yellow' ? '0 0 6px 1px rgba(234, 179, 8, 0.8)' :
-                                                                                                            '0 0 6px 1px rgba(59, 130, 246, 0.8)'
-                                                                                                }}
-                                                                                            />
-                                                                                        );
-                                                                                    })}
-                                                                                </div>
-                                                                            )}
-                                                                        </motion.div>
-                                                                    );
-                                                                })()}
-                                                            </div>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-sm font-bold text-white">
-                                                                    {activeBadge.label} Level {viewedLevel}
-                                                                </span>
-                                                                <span className="text-[10px] text-gray-400">
-                                                                    {viewedLevel! <= actualBadge.level ? 'Already Achieved ✓' : 'Future Achievement'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Level Selector */}
-                                                        <div className="flex items-center gap-2 bg-black/40 p-1.5 rounded-xl border border-white/5">
-                                                            <button
-                                                                disabled={viewedLevel === 1}
-                                                                onClick={(e) => { e.stopPropagation(); setViewedLevel(prev => Math.max(1, prev! - 1)); }}
-                                                                className="p-1 hover:bg-white/10 rounded-lg text-gray-400 disabled:opacity-20"
-                                                            >
-                                                                <ChevronDown size={16} className="rotate-90" />
-                                                            </button>
-                                                            <span className="text-xs font-bold text-white w-4 text-center">{viewedLevel}</span>
-                                                            <button
-                                                                disabled={viewedLevel === 4}
-                                                                onClick={(e) => { e.stopPropagation(); setViewedLevel(prev => Math.min(4, prev! + 1)); }}
-                                                                className="p-1 hover:bg-white/10 rounded-lg text-gray-400 disabled:opacity-20"
-                                                            >
-                                                                <ChevronDown size={16} className="-rotate-90" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    {activeBadge.details}
-
-                                                    {/* Level 4 Reward Banner */}
-                                                    <div className="mt-5 p-3 rounded-xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 flex items-center gap-3 relative overflow-hidden group/reward">
-                                                        <div className="absolute inset-0 bg-yellow-500/5 translate-x-[-100%] group-hover/reward:translate-x-[100%] transition-transform duration-1000"></div>
-                                                        <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-500">
-                                                            <Gift size={18} />
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[10px] font-bold text-yellow-500 uppercase tracking-wide">Phần thưởng cấp 4</span>
-                                                            <span className="text-xs text-gray-300 font-medium">Mỗi huy hiệu cấp 4 sẽ được <span className="text-yellow-400 font-bold">tặng 5 buổi học miễn phí!</span></span>
-                                                        </div>
-                                                    </div>
-                                                </motion.div>
-                                            </>
-
-                                        ) : (
-                                            <div className="p-8 text-center bg-white/5 rounded-3xl border border-dashed border-gray-700">
-                                                <Trophy size={32} className="mx-auto text-gray-600 mb-3" />
-                                                <p className="text-gray-400 text-sm">Earn your first Level 1 badge to see achievement progress!</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </Card>
-
-                            <Card className="lg:col-span-2 min-h-[300px]" title="Submission Rates">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
-                                    {(['hw1', 'hw2', 'hw3'] as const).map((key, idx) => (
-                                        <div key={key} className="flex flex-col items-center">
-                                            <h4 className="text-sm font-semibold text-gray-400 mb-2">
-                                                {idx === 0 ? '1st Homework' : idx === 1 ? '2nd Homework' : '3rd Homework'}
-                                            </h4>
-                                            <div className="h-[180px] w-full">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <PieChart>
-                                                        <Pie
-                                                            data={getPieData(key)}
-                                                            innerRadius={50}
-                                                            outerRadius={70}
-                                                            paddingAngle={5}
-                                                            dataKey="value"
-                                                            stroke="none"
-                                                        >
-                                                            {getPieData(key).map((entry, index) => (
-                                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                            ))}
-                                                        </Pie>
-                                                        <Tooltip contentStyle={{ backgroundColor: '#111C44', borderRadius: '12px', borderColor: '#2D3748' }} itemStyle={{ color: '#fff' }} />
-                                                        <Legend verticalAlign="bottom" height={36} />
-                                                    </PieChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                            <div className="text-2xl font-bold text-white mt-[-10px]">
-                                                {Math.round((submissions[key].submitted / (submissions[key].total || 1)) * 100)}%
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </Card>
-                        </div>
-
-
-
-                        {/* Row 2: Charts */}
-                        <Card title="Vocabulary Growth (Cumulative)" className="min-h-[350px]">
-                            <div className="h-[280px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={vocabChartData}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" vertical={false} />
-                                        <XAxis dataKey="date" stroke="#A0AEC0" fontSize={12} tickFormatter={(tick) => tick.slice(5)} />
-                                        <YAxis stroke="#A0AEC0" fontSize={12} />
-                                        <Tooltip contentStyle={{ backgroundColor: '#111C44', border: 'none', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
-                                        <Line type="monotone" dataKey="words" stroke="#0075FF" strokeWidth={3} dot={{ fill: '#0075FF', r: 4 }} activeDot={{ r: 8 }} />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </Card>
-
-                        <Card title="Score Trends (HW2 vs HW3)" className="min-h-[350px]">
-                            <div className="h-[280px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={scoreChartData}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" vertical={false} />
-                                        <XAxis dataKey="date" stroke="#A0AEC0" fontSize={12} tickFormatter={(tick) => tick.slice(5)} />
-                                        <YAxis stroke="#A0AEC0" fontSize={12} />
-                                        <Tooltip contentStyle={{ backgroundColor: '#111C44', border: 'none', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
-                                        <Legend />
-                                        <Line type="monotone" name="2nd HW" dataKey="hw2" stroke="#4FD1C5" strokeWidth={3} dot={false} />
-                                        <Line type="monotone" name="3rd HW" dataKey="hw3" stroke="#F6AD55" strokeWidth={3} dot={false} />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </Card>
-
-                        <Card title="Ranking History" className="min-h-[350px]">
-                            <div className="h-[280px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={rankingHistoryData}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" vertical={false} />
-                                        <XAxis dataKey="date" stroke="#A0AEC0" fontSize={12} tickFormatter={(tick) => tick.slice(5)} />
-                                        {/* Reversed Y-Axis for Rank (1 is top) */}
-                                        <YAxis stroke="#A0AEC0" fontSize={12} reversed domain={[1, 'dataMax']} allowDecimals={false} />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: '#111C44', border: 'none', borderRadius: '8px' }}
-                                            itemStyle={{ color: '#fff' }}
-                                            formatter={(value: any) => [`Rank #${value}`, 'Rank']}
-                                            labelFormatter={(label) => `Date: ${label}`}
-                                        />
-                                        <Line
-                                            type="stepAfter"
-                                            dataKey="rank"
-                                            stroke="#F6E05E"
-                                            strokeWidth={3}
-                                            dot={{ fill: '#F6E05E', r: 4, strokeWidth: 0 }}
-                                            activeDot={{ r: 6 }}
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </Card>
-
-                        {/* Video Progress Section */}
-                        {student.videoLinks && student.videoLinks.length > 0 && (
-                            <Card title="Tiến trình học tập" className="col-span-1 lg:col-span-2">
-                                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                                    {student.videoLinks.map((link: { url: string, label?: string }, idx: number) => {
-                                        const embedUrl = getEmbedUrl(link.url);
-                                        if (!embedUrl) return null;
                                         return (
-                                            <div key={idx} className="flex-shrink-0 w-[300px] bg-[#1A1D24] rounded-xl overflow-hidden shadow-lg border border-gray-800 group">
-                                                <div className="relative aspect-video">
-                                                    <iframe
-                                                        src={embedUrl}
-                                                        title={link.label || `Video bài học ${idx + 1}`}
-                                                        className="w-full h-full"
-                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                        allowFullScreen
-                                                    />
-                                                </div>
-                                                <div className="p-3 bg-white/5">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{link.label || `Video buổi học ${idx + 1}`}</p>
-                                                    </div>
+                                            <div
+                                                key={potential.id}
+                                                className="group/header-badge relative cursor-pointer"
+                                                onClick={() => setSelectedBadgeId(potential.id)}
+                                            >
+                                                <motion.div
+                                                    className={clsx(
+                                                        "p-1.5 rounded-full transition-all relative",
+                                                        isLocked ? "bg-white/5 opacity-20 grayscale" : "bg-white/5 hover:bg-white/10",
+                                                        !isLocked && colorClass,
+                                                        isLevel4 && "animate-pulse"
+                                                    )}
+                                                    animate={isLevel4 ? { rotate: [0, 5, -5, 0] } : {}}
+                                                    transition={isLevel4 ? { repeat: Infinity, duration: 4, ease: "easeInOut" } : {}}
+                                                    style={{
+                                                        boxShadow: isLocked ? 'none' : `0 0 ${glowIntensity}px ${shadowHex}`
+                                                    }}
+                                                >
+                                                    <IconComponent size={size} />
+
+                                                    {hasSparkles && (
+                                                        <div className="absolute inset-0 pointer-events-none">
+                                                            {[...Array(level * 2)].map((_, i) => (
+                                                                <motion.div
+                                                                    key={i}
+                                                                    className="absolute w-1 h-1 bg-white rounded-full"
+                                                                    initial={{ x: "50%", y: "50%", opacity: 1, scale: 0 }}
+                                                                    animate={{
+                                                                        x: `${50 + (Math.random() - 0.5) * 150}%`,
+                                                                        y: `${50 + (Math.random() - 0.5) * 150}%`,
+                                                                        opacity: 0,
+                                                                        scale: 1.5
+                                                                    }}
+                                                                    transition={{ repeat: Infinity, duration: 1 + Math.random(), delay: Math.random() * 2 }}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                                <div className="absolute bottom-full left-0 mb-3 px-3 py-1.5 bg-gray-900/95 backdrop-blur text-white text-[11px] font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/header-badge:opacity-100 transition-all pointer-events-none z-[150] shadow-xl border border-white/10">
+                                                    {earned ? earned.tooltip : `Locked: ${potential.label}`}
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
-                            </Card>
-                        )}
+                            </div>
+                            <p className="text-gray-400 text-sm">Performance Analysis & Progress</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white">
+                        <X size={24} />
+                    </button>
+                </div>
 
-                        {/* Row 3: Vocabulary List */}
-                        <Card title="Learned Vocabulary" className="col-span-1 lg:col-span-2">
-                            <div className="overflow-x-auto max-h-[300px]">
-                                <table className="w-full text-left border-collapse">
-                                    <thead className="bg-white/5 text-gray-400 text-xs uppercase sticky top-0 backdrop-blur-md">
-                                        <tr>
-                                            <th className="p-3 rounded-tl-lg">Date</th>
-                                            <th className="p-3">Word/Phrase</th>
-                                            <th className="p-3 rounded-tr-lg">Sentence (Context)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="text-sm text-gray-300 divide-y divide-gray-700">
-                                        {uniqueVocabList.map((row, i) => (
-                                            <tr key={i} className="hover:bg-white/5 transition-colors">
-                                                <td className="p-3">{row.Date?.split('T')[0]}</td>
-                                                <td className="p-3 font-semibold text-white">{row['Correct Answer']}</td>
-                                                <td className="p-3 text-gray-400 italic">{row['Question text']}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    {/* Top Prize Section (Only for Top 3) */}
+                    {rank && rank <= 3 && (
+                        <div className="col-span-1 lg:col-span-2">
+                            <motion.div
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                className={clsx(
+                                    "relative overflow-hidden rounded-3xl p-6 border",
+                                    rank === 1 ? "bg-gradient-to-br from-yellow-500/20 to-orange-500/10 border-yellow-500/30" :
+                                        rank === 2 ? "bg-gradient-to-br from-slate-400/20 to-slate-600/10 border-slate-400/30" :
+                                            "bg-gradient-to-br from-orange-500/20 to-red-500/10 border-orange-500/30"
+                                )}
+                            >
+                                {/* Decorative Background Elements */}
+                                <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/5 rounded-full blur-3xl" />
+                                <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
+
+                                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                    <div className="flex items-center gap-5">
+                                        <div className={clsx(
+                                            "w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg",
+                                            rank === 1 ? "bg-yellow-500 text-white" :
+                                                rank === 2 ? "bg-slate-400 text-white" :
+                                                    "bg-orange-500 text-white"
+                                        )}>
+                                            <Ticket size={32} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-black text-white uppercase tracking-tight mb-1">
+                                                Hội Viên Ưu Tú - Quà Tặng Top {rank}
+                                            </h3>
+                                            <p className="text-gray-400 text-sm max-w-md">
+                                                Duy trì vị trí trong <b>Top 3</b> để nhận ưu đãi đặc biệt khi đăng ký khóa học tiếp theo.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col items-center justify-center min-w-[120px]">
+                                        <div className="flex items-baseline gap-2">
+                                            <span className={clsx(
+                                                "text-4xl font-black",
+                                                rank === 1 ? "text-yellow-400" :
+                                                    rank === 2 ? "text-slate-300" :
+                                                        "text-orange-400"
+                                            )}>
+                                                -{rank === 1 ? "50%" : rank === 2 ? "40%" : "30%"}
+                                            </span>
+                                        </div>
+                                        <div className="bg-white/10 px-3 py-1 rounded-full border border-white/10 mt-2">
+                                            <span className="text-xs font-bold text-white uppercase tracking-wider">
+                                                Ưu đãi học thêm
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Conditions Banner */}
+                                <div className="mt-6 pt-6 border-t border-white/10 flex flex-wrap gap-4">
+                                    <div className="flex items-center gap-2 text-[11px] text-gray-400">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                        Áp dụng khi đăng ký khóa học mới bất kỳ
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[11px] text-gray-400">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                        Giảm trực tiếp vào gói 10 buổi học thêm
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[11px] text-gray-400">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                                        Chỉ dành cho học viên xuất sắc nhất
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+
+                    {/* Row 1: Achievement & Submissions */}
+                    <div className="col-span-1 lg:col-span-2 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Achievement Section */}
+                        <Card className="lg:col-span-1 overflow-visible" title="Huy hiệu">
+                            <div className="space-y-6">
+                                {/* Current Badges Inventory */}
+                                <div className="flex flex-wrap gap-3">
+                                    {ALL_POTENTIAL_BADGES.map((potential) => {
+                                        const earned = student.badges?.find((b: any) => b.id === potential.id);
+                                        const IconComponent = potential.icon;
+                                        const level = earned?.level || 1;
+                                        const isLocked = !earned;
+                                        const iconSize = 24 + (level - 1) * 4; // 24, 28, 32, 36
+                                        const glowIntensity = isLocked ? 0 : (level === 1 ? 5 : level * 10);
+
+                                        const colorClass = potential.color === 'purple' ? 'text-purple-500' :
+                                            potential.color === 'blue' ? 'text-blue-500' :
+                                                potential.color === 'yellow' ? 'text-yellow-500' :
+                                                    potential.color === 'orange' ? 'text-orange-500' :
+                                                        potential.color === 'green' ? 'text-green-500' : 'text-gray-400';
+
+                                        const shadowHex = potential.color === 'purple' ? '#a855f7' :
+                                            potential.color === 'blue' ? '#3b82f6' :
+                                                potential.color === 'yellow' ? '#eab308' :
+                                                    potential.color === 'orange' ? '#f97316' :
+                                                        potential.color === 'green' ? '#22c55e' : '#9ca3af';
+
+                                        const isActive = activeBadge?.id === potential.id;
+
+                                        return (
+                                            <div
+                                                key={potential.id}
+                                                className="group/badge-modal relative cursor-pointer"
+                                                onClick={() => setSelectedBadgeId(potential.id)}
+                                            >
+                                                <motion.div
+                                                    className={clsx(
+                                                        "p-3 rounded-2xl border transition-all",
+                                                        isLocked ? "bg-white/5 border-white/5 opacity-20 grayscale" : "bg-white/5 border-white/10",
+                                                        !isLocked && colorClass,
+                                                        isActive && "ring-2 ring-offset-2 ring-offset-[#0F1214] border-transparent scale-110",
+                                                        isActive && (potential.color === 'purple' ? 'ring-purple-500' :
+                                                            potential.color === 'blue' ? 'ring-blue-500' :
+                                                                potential.color === 'yellow' ? 'ring-yellow-500' :
+                                                                    potential.color === 'orange' ? 'ring-orange-500' :
+                                                                        potential.color === 'green' ? 'ring-green-500' : 'ring-white')
+                                                    )}
+                                                    style={{ boxShadow: isLocked ? 'none' : `0 0 ${glowIntensity}px ${shadowHex}` }}
+                                                    whileHover={{ scale: isActive ? 1.1 : 1.05 }}
+                                                >
+                                                    <IconComponent size={iconSize} />
+                                                </motion.div>
+                                                <div className="absolute bottom-full left-0 mb-3 px-3 py-1.5 bg-gray-900/95 backdrop-blur text-white text-[11px] font-medium rounded-lg whitespace-nowrap opacity-0 group-hover/badge-modal:opacity-100 transition-all pointer-events-none z-[150] shadow-xl border border-white/10">
+                                                    {earned ? earned.tooltip : `Locked Achievement: ${potential.label}`}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Progress Trackers */}
+                                <div className="space-y-4">
+                                    {activeBadge ? (
+                                        <>
+                                            {/* Active Selection Details */}
+                                            <motion.div
+                                                key={`${activeBadge.id}-${viewedLevel}`}
+                                                initial={{ opacity: 0, x: 20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                className={clsx("p-4 rounded-2xl border", activeBadge.color === 'purple' ? "bg-purple-500/5 border-purple-500/10" : activeBadge.color === 'yellow' ? "bg-yellow-500/5 border-yellow-500/10" : "bg-blue-500/5 border-blue-500/10")}
+                                            >
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="relative">
+                                                            {/* Dynamic Visual Icon based on viewedLevel */}
+                                                            {(() => {
+                                                                const IconComp = activeBadge.icon;
+                                                                const level = viewedLevel || 1;
+                                                                const size = 20 + (level - 1) * 4;
+                                                                const glowIntensity = level === 1 ? 5 : level * 12;
+                                                                const hasSparkles = level >= 3;
+                                                                const isLvl4 = level >= 4;
+                                                                const shadowHex = activeBadge.color === 'purple' ? '#a855f7' : activeBadge.color === 'blue' ? '#3b82f6' : activeBadge.color === 'yellow' ? '#eab308' : '#9ca3af';
+
+                                                                return (
+                                                                    <motion.div
+                                                                        animate={isLvl4 ? { scale: [1, 1.1, 1] } : {}}
+                                                                        transition={isLvl4 ? { repeat: Infinity, duration: 2, ease: "easeInOut" } : {}}
+                                                                        style={{
+                                                                            boxShadow: `0 0 ${glowIntensity}px ${shadowHex}`,
+                                                                            border: isLvl4 ? `1px solid ${shadowHex}` : 'none',
+                                                                            width: 44, height: 44
+                                                                        }}
+                                                                        className={clsx(
+                                                                            "rounded-xl flex items-center justify-center bg-white/5 relative overflow-visible",
+                                                                            activeBadge.color === 'purple' ? "text-purple-500" : activeBadge.color === 'yellow' ? "text-yellow-500" : "text-blue-500"
+                                                                        )}
+                                                                    >
+                                                                        <IconComp size={size} />
+                                                                        {hasSparkles && (
+                                                                            <div className="absolute inset-0 pointer-events-none">
+                                                                                {/* Fairy Dust / Halo Effect - Positioned around the icon */}
+                                                                                {[...Array(level * 4)].map((_, i) => {
+                                                                                    const angle = (i / (level * 4)) * Math.PI * 2;
+                                                                                    // Distribute sparkles in a halo slightly larger than the container
+                                                                                    const distance = 120 + Math.random() * 40; // 120-160% from center
+                                                                                    const x = 50 + Math.cos(angle) * 35; // ~35px radius
+                                                                                    const y = 50 + Math.sin(angle) * 35;
+
+                                                                                    return (
+                                                                                        <motion.div
+                                                                                            key={i}
+                                                                                            className={clsx(
+                                                                                                "absolute rounded-full z-10",
+                                                                                                activeBadge.color === 'purple' ? "bg-purple-300" : activeBadge.color === 'yellow' ? "bg-yellow-200" : "bg-blue-300"
+                                                                                            )}
+                                                                                            initial={{ opacity: 0, scale: 0 }}
+                                                                                            animate={{
+                                                                                                opacity: [0, 1, 0, 0],
+                                                                                                scale: [0, 1, 0.5, 0]
+                                                                                            }}
+                                                                                            transition={{
+                                                                                                repeat: Infinity,
+                                                                                                duration: 2 + Math.random(),
+                                                                                                delay: Math.random() * 2,
+                                                                                                ease: "easeInOut"
+                                                                                            }}
+                                                                                            style={{
+                                                                                                top: `${y}%`,
+                                                                                                left: `${x}%`,
+                                                                                                width: Math.random() * 3 + 2, // 2-5px size
+                                                                                                height: Math.random() * 3 + 2,
+                                                                                                boxShadow: activeBadge.color === 'purple' ? '0 0 6px 1px rgba(168, 85, 247, 0.8)' :
+                                                                                                    activeBadge.color === 'yellow' ? '0 0 6px 1px rgba(234, 179, 8, 0.8)' :
+                                                                                                        '0 0 6px 1px rgba(59, 130, 246, 0.8)'
+                                                                                            }}
+                                                                                        />
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        )}
+                                                                    </motion.div>
+                                                                );
+                                                            })()}
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-bold text-white">
+                                                                {activeBadge.label} Level {viewedLevel}
+                                                            </span>
+                                                            <span className="text-[10px] text-gray-400">
+                                                                {viewedLevel! <= actualBadge.level ? 'Already Achieved ✓' : 'Future Achievement'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Level Selector */}
+                                                    <div className="flex items-center gap-2 bg-black/40 p-1.5 rounded-xl border border-white/5">
+                                                        <button
+                                                            disabled={viewedLevel === 1}
+                                                            onClick={(e) => { e.stopPropagation(); setViewedLevel(prev => Math.max(1, prev! - 1)); }}
+                                                            className="p-1 hover:bg-white/10 rounded-lg text-gray-400 disabled:opacity-20"
+                                                        >
+                                                            <ChevronDown size={16} className="rotate-90" />
+                                                        </button>
+                                                        <span className="text-xs font-bold text-white w-4 text-center">{viewedLevel}</span>
+                                                        <button
+                                                            disabled={viewedLevel === 4}
+                                                            onClick={(e) => { e.stopPropagation(); setViewedLevel(prev => Math.min(4, prev! + 1)); }}
+                                                            className="p-1 hover:bg-white/10 rounded-lg text-gray-400 disabled:opacity-20"
+                                                        >
+                                                            <ChevronDown size={16} className="-rotate-90" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                {activeBadge.details}
+
+                                                {/* Level 4 Reward Banner */}
+                                                <div className="mt-5 p-3 rounded-xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 flex items-center gap-3 relative overflow-hidden group/reward">
+                                                    <div className="absolute inset-0 bg-yellow-500/5 translate-x-[-100%] group-hover/reward:translate-x-[100%] transition-transform duration-1000"></div>
+                                                    <div className="p-2 bg-yellow-500/10 rounded-lg text-yellow-500">
+                                                        <Gift size={18} />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[10px] font-bold text-yellow-500 uppercase tracking-wide">Phần thưởng cấp 4</span>
+                                                        <span className="text-xs text-gray-300 font-medium">Mỗi huy hiệu cấp 4 sẽ được <span className="text-yellow-400 font-bold">tặng 5 buổi học miễn phí!</span></span>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        </>
+
+                                    ) : (
+                                        <div className="p-8 text-center bg-white/5 rounded-3xl border border-dashed border-gray-700">
+                                            <Trophy size={32} className="mx-auto text-gray-600 mb-3" />
+                                            <p className="text-gray-400 text-sm">Earn your first Level 1 badge to see achievement progress!</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </Card>
 
+                        <Card className="lg:col-span-2 min-h-[300px]" title="Submission Rates">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+                                {(['hw1', 'hw2', 'hw3'] as const).map((key, idx) => (
+                                    <div key={key} className="flex flex-col items-center">
+                                        <h4 className="text-sm font-semibold text-gray-400 mb-2">
+                                            {idx === 0 ? '1st Homework' : idx === 1 ? '2nd Homework' : '3rd Homework'}
+                                        </h4>
+                                        <div className="h-[180px] w-full">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={getPieData(key)}
+                                                        innerRadius={50}
+                                                        outerRadius={70}
+                                                        paddingAngle={5}
+                                                        dataKey="value"
+                                                        stroke="none"
+                                                    >
+                                                        {getPieData(key).map((entry, index) => (
+                                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip contentStyle={{ backgroundColor: '#111C44', borderRadius: '12px', borderColor: '#2D3748' }} itemStyle={{ color: '#fff' }} />
+                                                    <Legend verticalAlign="bottom" height={36} />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <div className="text-2xl font-bold text-white mt-[-10px]">
+                                            {Math.round((submissions[key].submitted / (submissions[key].total || 1)) * 100)}%
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
                     </div>
-                </motion.div>
+
+
+
+                    {/* Row 2: Charts */}
+                    <Card title="Vocabulary Growth (Cumulative)" className="min-h-[350px]">
+                        <div className="h-[280px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={vocabChartData}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" vertical={false} />
+                                    <XAxis dataKey="date" stroke="#A0AEC0" fontSize={12} tickFormatter={(tick) => tick.slice(5)} />
+                                    <YAxis stroke="#A0AEC0" fontSize={12} />
+                                    <Tooltip contentStyle={{ backgroundColor: '#111C44', border: 'none', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
+                                    <Line type="monotone" dataKey="words" stroke="#0075FF" strokeWidth={3} dot={{ fill: '#0075FF', r: 4 }} activeDot={{ r: 8 }} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </Card>
+
+                    <Card title="Score Trends (HW2 vs HW3)" className="min-h-[350px]">
+                        <div className="h-[280px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={scoreChartData}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" vertical={false} />
+                                    <XAxis dataKey="date" stroke="#A0AEC0" fontSize={12} tickFormatter={(tick) => tick.slice(5)} />
+                                    <YAxis stroke="#A0AEC0" fontSize={12} />
+                                    <Tooltip contentStyle={{ backgroundColor: '#111C44', border: 'none', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
+                                    <Legend />
+                                    <Line type="monotone" name="2nd HW" dataKey="hw2" stroke="#4FD1C5" strokeWidth={3} dot={false} />
+                                    <Line type="monotone" name="3rd HW" dataKey="hw3" stroke="#F6AD55" strokeWidth={3} dot={false} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </Card>
+
+                    <Card title="Ranking History" className="min-h-[350px]">
+                        <div className="h-[280px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={rankingHistoryData}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" vertical={false} />
+                                    <XAxis dataKey="date" stroke="#A0AEC0" fontSize={12} tickFormatter={(tick) => tick.slice(5)} />
+                                    {/* Reversed Y-Axis for Rank (1 is top) */}
+                                    <YAxis stroke="#A0AEC0" fontSize={12} reversed domain={[1, 'dataMax']} allowDecimals={false} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: '#111C44', border: 'none', borderRadius: '8px' }}
+                                        itemStyle={{ color: '#fff' }}
+                                        formatter={(value: any) => [`Rank #${value}`, 'Rank']}
+                                        labelFormatter={(label) => `Date: ${label}`}
+                                    />
+                                    <Line
+                                        type="stepAfter"
+                                        dataKey="rank"
+                                        stroke="#F6E05E"
+                                        strokeWidth={3}
+                                        dot={{ fill: '#F6E05E', r: 4, strokeWidth: 0 }}
+                                        activeDot={{ r: 6 }}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </Card>
+
+                    {/* Video Progress Section */}
+                    {student.videoLinks && student.videoLinks.length > 0 && (
+                        <Card title="Tiến trình học tập" className="col-span-1 lg:col-span-2">
+                            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                                {student.videoLinks.map((link: { url: string, label?: string }, idx: number) => {
+                                    const embedUrl = getEmbedUrl(link.url);
+                                    if (!embedUrl) return null;
+                                    return (
+                                        <div key={idx} className="flex-shrink-0 w-[300px] bg-[#1A1D24] rounded-xl overflow-hidden shadow-lg border border-gray-800 group">
+                                            <div className="relative aspect-video">
+                                                <iframe
+                                                    src={embedUrl}
+                                                    title={link.label || `Video bài học ${idx + 1}`}
+                                                    className="w-full h-full"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                />
+                                            </div>
+                                            <div className="p-3 bg-white/5">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{link.label || `Video buổi học ${idx + 1}`}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </Card>
+                    )}
+
+                    {/* Row 3: Vocabulary List */}
+                    <Card title="Learned Vocabulary" className="col-span-1 lg:col-span-2">
+                        <div className="overflow-x-auto max-h-[300px]">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-white/5 text-gray-400 text-xs uppercase sticky top-0 backdrop-blur-md">
+                                    <tr>
+                                        <th className="p-3 rounded-tl-lg">Date</th>
+                                        <th className="p-3">Word/Phrase</th>
+                                        <th className="p-3 rounded-tr-lg">Sentence (Context)</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-sm text-gray-300 divide-y divide-gray-700">
+                                    {uniqueVocabList.map((row, i) => (
+                                        <tr key={i} className="hover:bg-white/5 transition-colors">
+                                            <td className="p-3">{row.Date?.split('T')[0]}</td>
+                                            <td className="p-3 font-semibold text-white">{row['Correct Answer']}</td>
+                                            <td className="p-3 text-gray-400 italic">{row['Question text']}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+
+                </div>
             </motion.div>
-        </AnimatePresence >
+        </motion.div>
+    );
+}
+
+export function StudentDetailModal(props: StudentModalProps) {
+    return (
+        <AnimatePresence>
+            {props.isOpen && props.student && (
+                <StudentDetailContent {...props} key="student-modal-content" />
+            )}
+        </AnimatePresence>
     );
 }
