@@ -5,8 +5,11 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Vision UI Dashboard",
+  title: "Tom English - Bảng xếp hạng học sinh",
   description: "Student Ranking Dashboard",
+  icons: {
+    icon: '/tom-english-logo.png',
+  },
 };
 
 export default function RootLayout({
