@@ -9,7 +9,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 {/* Branding Header */}
                 <div className="flex items-center gap-4 py-8 mb-4">
                     <img
-                        src="/tom-english-logo.png"
+                        src="/tom-nash-logo.png"
                         alt="Tom English Logo"
                         className="h-16 w-auto object-contain"
                     />

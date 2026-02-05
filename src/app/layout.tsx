@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "Tom English - Bảng xếp hạng học sinh",
   description: "Student Ranking Dashboard",
   icons: {
-    icon: '/tom-english-logo.png',
+    icon: '/tom-nash-logo.png',
   },
 };
 
