@@ -7,6 +7,7 @@ import {
     PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
+import { VocabularyPractice } from './VocabularyPractice';
 
 interface StudentModalProps {
     isOpen: boolean;
@@ -977,29 +978,33 @@ function StudentDetailContent({ isOpen, onClose, student, vocabData, summaryData
                     )}
 
                     {/* Row 3: Vocabulary List */}
-                    <Card title="Learned Vocabulary" className="col-span-1 lg:col-span-2">
-                        <div className="overflow-x-auto max-h-[300px]">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="bg-white/5 text-gray-400 text-xs uppercase sticky top-0 backdrop-blur-md">
-                                    <tr>
-                                        <th className="p-3 rounded-tl-lg">Date</th>
-                                        <th className="p-3">Word/Phrase</th>
-                                        <th className="p-3 rounded-tr-lg">Sentence (Context)</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="text-sm text-gray-300 divide-y divide-gray-700">
-                                    {uniqueVocabList.map((row, i) => (
-                                        <tr key={i} className="hover:bg-white/5 transition-colors">
-                                            <td className="p-3">{row.Date?.split('T')[0]}</td>
-                                            <td className="p-3 font-semibold text-white">{row['Correct Answer']}</td>
-                                            <td className="p-3 text-gray-400 italic">{row['Question text']}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </Card>
+                    <div className="col-span-1 lg:col-span-2">
+                        <VocabularyPractice vocabList={uniqueVocabList} />
 
+                        <Card title="Learned Vocabulary">
+                            <div className="overflow-x-auto max-h-[300px]">
+                                <table className="w-full text-left border-collapse">
+                                    <thead className="bg-white/5 text-gray-400 text-xs uppercase sticky top-0 backdrop-blur-md">
+                                        <tr>
+                                            <th className="p-3 rounded-tl-lg">Date</th>
+                                            <th className="p-3">Word/Phrase</th>
+                                            <th className="p-3 rounded-tr-lg">Sentence (Context)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="text-sm text-gray-300 divide-y divide-gray-700">
+                                        {uniqueVocabList.map((row, i) => (
+                                            <tr key={i} className="hover:bg-white/5 transition-colors">
+                                                <td className="p-3">{row.Date?.split('T')[0]}</td>
+                                                <td className="p-3 font-semibold text-white">{row['Correct Answer']}</td>
+                                                <td className="p-3 text-gray-400 italic">{row['Question text']}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
+
+                    </div>
                 </div>
             </motion.div>
         </motion.div>
