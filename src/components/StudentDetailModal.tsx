@@ -905,7 +905,27 @@ function StudentDetailContent({ isOpen, onClose, student, vocabData, summaryData
                                         dataKey="words"
                                         stroke="#0075FF"
                                         strokeWidth={3}
-                                        dot={{ fill: '#0075FF', r: 4 }}
+                                        dot={(props: any) => {
+                                            const { cx, cy, stroke, fill, payload } = props;
+                                            return (
+                                                <circle
+                                                    key={`dot-${payload.date}`}
+                                                    cx={cx}
+                                                    cy={cy}
+                                                    r={4}
+                                                    fill={fill}
+                                                    stroke={stroke}
+                                                    className="cursor-pointer"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (payload && payload.date) {
+                                                            setSelectedDate(payload.date);
+                                                            setIsDayModalOpen(true);
+                                                        }
+                                                    }}
+                                                />
+                                            );
+                                        }}
                                         activeDot={(props: any) => {
                                             const { cx, cy, stroke, fill, payload } = props;
                                             return (
