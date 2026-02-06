@@ -892,59 +892,65 @@ function StudentDetailContent({ isOpen, onClose, student, vocabData, summaryData
 
 
                     {/* Row 2: Charts */}
-                    <Card title="Vocabulary Growth (Cumulative)" className="min-h-[350px]">
+                    <Card title="Từ vựng tích lũy (bấm vào để xem chi tiết)" className="min-h-[350px]">
+
                         <div className="h-[280px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={vocabChartData}>
+                                <LineChart
+                                    data={vocabChartData}
+                                    onClick={(e) => {
+                                        if (e && e.activePayload && e.activePayload.length > 0) {
+                                            const payload = e.activePayload[0].payload;
+                                            setSelectedDate(payload.date);
+                                            setIsDayModalOpen(true);
+                                        }
+                                    }}
+                                    className="cursor-pointer"
+                                >
                                     <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" vertical={false} />
                                     <XAxis dataKey="date" stroke="#A0AEC0" fontSize={12} tickFormatter={(tick) => tick.slice(5)} />
                                     <YAxis stroke="#A0AEC0" fontSize={12} />
-                                    <Tooltip contentStyle={{ backgroundColor: '#111C44', border: 'none', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: '#111C44', border: '1px solid #2D3748', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                                        itemStyle={{ color: '#fff' }}
+                                        labelStyle={{ color: '#A0AEC0', marginBottom: '4px' }}
+                                        cursor={{ stroke: '#4A5568', strokeWidth: 1, strokeDasharray: '4 4' }}
+                                        content={({ active, payload, label }) => {
+                                            if (active && payload && payload.length) {
+                                                return (
+                                                    <div className="bg-[#111C44] border border-gray-700 p-3 rounded-xl shadow-xl">
+                                                        <p className="text-gray-400 text-xs mb-1">{label}</p>
+                                                        <p className="text-white font-bold text-sm mb-2">
+                                                            {payload[0].value} Words
+                                                        </p>
+                                                        <div className="flex items-center gap-1 text-[10px] text-blue-400 font-medium bg-blue-500/10 px-2 py-1 rounded-lg">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                                                            Click to view list
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    />
                                     <Line
                                         type="monotone"
                                         dataKey="words"
-                                        stroke="#0075FF"
+                                        stroke="#3B82F6"
                                         strokeWidth={3}
-                                        dot={(props: any) => {
-                                            const { cx, cy, stroke, fill, payload } = props;
-                                            return (
-                                                <circle
-                                                    key={`dot-${payload.date}`}
-                                                    cx={cx}
-                                                    cy={cy}
-                                                    r={4}
-                                                    fill={fill}
-                                                    stroke={stroke}
-                                                    className="cursor-pointer"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (payload && payload.date) {
-                                                            setSelectedDate(payload.date);
-                                                            setIsDayModalOpen(true);
-                                                        }
-                                                    }}
-                                                />
-                                            );
+                                        dot={{
+                                            r: 4,
+                                            fill: '#1E293B',
+                                            stroke: '#3B82F6',
+                                            strokeWidth: 2
                                         }}
-                                        activeDot={(props: any) => {
-                                            const { cx, cy, stroke, fill, payload } = props;
-                                            return (
-                                                <circle
-                                                    cx={cx}
-                                                    cy={cy}
-                                                    r={8}
-                                                    fill={fill}
-                                                    stroke={stroke}
-                                                    className="cursor-pointer hover:scale-125 transition-transform"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (payload && payload.date) {
-                                                            setSelectedDate(payload.date);
-                                                            setIsDayModalOpen(true);
-                                                        }
-                                                    }}
-                                                />
-                                            );
+                                        activeDot={{
+                                            r: 7,
+                                            fill: '#3B82F6',
+                                            stroke: '#FFFFFF',
+                                            strokeWidth: 2,
+                                            // Add a glowing effect to active dot
+                                            className: "filter drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
                                         }}
                                     />
                                 </LineChart>
