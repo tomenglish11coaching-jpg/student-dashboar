@@ -921,11 +921,11 @@ function StudentDetailContent({ isOpen, onClose, student, vocabData, summaryData
                                                     <div className="bg-[#111C44] border border-gray-700 p-3 rounded-xl shadow-xl">
                                                         <p className="text-gray-400 text-xs mb-1">{label}</p>
                                                         <p className="text-white font-bold text-sm mb-2">
-                                                            {payload[0].value} Words
+                                                            {payload[0].value} Từ
                                                         </p>
                                                         <div className="flex items-center gap-1 text-[10px] text-blue-400 font-medium bg-blue-500/10 px-2 py-1 rounded-lg">
                                                             <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                                                            Click to view list
+                                                            Bấm vào để xem
                                                         </div>
                                                     </div>
                                                 );
@@ -938,19 +938,48 @@ function StudentDetailContent({ isOpen, onClose, student, vocabData, summaryData
                                         dataKey="words"
                                         stroke="#3B82F6"
                                         strokeWidth={3}
-                                        dot={{
-                                            r: 4,
-                                            fill: '#1E293B',
-                                            stroke: '#3B82F6',
-                                            strokeWidth: 2
+                                        dot={(props: any) => {
+                                            const { cx, cy, stroke, fill, payload } = props;
+                                            return (
+                                                <circle
+                                                    key={`dot-${payload.date}`}
+                                                    cx={cx}
+                                                    cy={cy}
+                                                    r={4}
+                                                    fill="#1E293B"
+                                                    stroke="#3B82F6"
+                                                    strokeWidth={2}
+                                                    className="cursor-pointer"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (payload && payload.date) {
+                                                            setSelectedDate(payload.date);
+                                                            setIsDayModalOpen(true);
+                                                        }
+                                                    }}
+                                                />
+                                            );
                                         }}
-                                        activeDot={{
-                                            r: 7,
-                                            fill: '#3B82F6',
-                                            stroke: '#FFFFFF',
-                                            strokeWidth: 2,
-                                            // Add a glowing effect to active dot
-                                            className: "filter drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                                        activeDot={(props: any) => {
+                                            const { cx, cy, stroke, fill, payload } = props;
+                                            return (
+                                                <circle
+                                                    cx={cx}
+                                                    cy={cy}
+                                                    r={8}
+                                                    fill="#3B82F6"
+                                                    stroke="#FFFFFF"
+                                                    strokeWidth={2}
+                                                    className="cursor-pointer filter drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (payload && payload.date) {
+                                                            setSelectedDate(payload.date);
+                                                            setIsDayModalOpen(true);
+                                                        }
+                                                    }}
+                                                />
+                                            );
                                         }}
                                     />
                                 </LineChart>
