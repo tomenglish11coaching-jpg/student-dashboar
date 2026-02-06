@@ -322,6 +322,8 @@ function StudentDetailContent({ isOpen, onClose, student, vocabData, summaryData
 
     const [selectedBadgeId, setSelectedBadgeId] = useState<string | null>(null);
     const [viewedLevel, setViewedLevel] = useState<number | null>(null);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+    const [isDayModalOpen, setIsDayModalOpen] = useState(false);
 
     // Synchronize viewedLevel when selectedBadge changes
     const actualBadge = useMemo(() => {
@@ -888,6 +890,7 @@ function StudentDetailContent({ isOpen, onClose, student, vocabData, summaryData
 
 
 
+
                     {/* Row 2: Charts */}
                     <Card title="Vocabulary Growth (Cumulative)" className="min-h-[350px]">
                         <div className="h-[280px] w-full">
@@ -897,11 +900,100 @@ function StudentDetailContent({ isOpen, onClose, student, vocabData, summaryData
                                     <XAxis dataKey="date" stroke="#A0AEC0" fontSize={12} tickFormatter={(tick) => tick.slice(5)} />
                                     <YAxis stroke="#A0AEC0" fontSize={12} />
                                     <Tooltip contentStyle={{ backgroundColor: '#111C44', border: 'none', borderRadius: '8px' }} itemStyle={{ color: '#fff' }} />
-                                    <Line type="monotone" dataKey="words" stroke="#0075FF" strokeWidth={3} dot={{ fill: '#0075FF', r: 4 }} activeDot={{ r: 8 }} />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="words"
+                                        stroke="#0075FF"
+                                        strokeWidth={3}
+                                        dot={{ fill: '#0075FF', r: 4 }}
+                                        activeDot={(props: any) => {
+                                            const { cx, cy, stroke, fill, payload } = props;
+                                            return (
+                                                <circle
+                                                    cx={cx}
+                                                    cy={cy}
+                                                    r={8}
+                                                    fill={fill}
+                                                    stroke={stroke}
+                                                    className="cursor-pointer hover:scale-125 transition-transform"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (payload && payload.date) {
+                                                            setSelectedDate(payload.date);
+                                                            setIsDayModalOpen(true);
+                                                        }
+                                                    }}
+                                                />
+                                            );
+                                        }}
+                                    />
                                 </LineChart>
+
                             </ResponsiveContainer>
                         </div>
                     </Card>
+
+                    {/* Daily Vocabulary Modal */}
+                    <AnimatePresence>
+                        {isDayModalOpen && selectedDate && (
+                            <motion.div
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+                                onClick={() => setIsDayModalOpen(false)}
+                            >
+                                <motion.div
+                                    initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+                                    className="bg-[#1A1D24] border border-gray-700 w-full max-w-lg max-h-[80vh] overflow-hidden rounded-2xl shadow-2xl flex flex-col"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-[#1A1D24]">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white">Vocabulary List</h3>
+                                            <p className="text-sm text-blue-400">{selectedDate}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsDayModalOpen(false)}
+                                            className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+
+                                    <div className="overflow-y-auto p-4 custom-scrollbar">
+                                        <div className="space-y-3">
+                                            {uniqueVocabList
+                                                .filter(item => item['Date']?.startsWith(selectedDate))
+                                                .map((item, idx) => (
+                                                    <div key={idx} className="p-3 bg-white/5 rounded-xl border border-white/5 hover:border-blue-500/30 transition-colors">
+                                                        <div className="flex justify-between items-start mb-1">
+                                                            <span className="font-bold text-white text-base">{item['Correct Answer']}</span>
+                                                            <span className="text-[10px] text-gray-500 bg-black/30 px-2 py-0.5 rounded-full border border-gray-800">
+                                                                #{idx + 1}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-400 italic">
+                                                            {item['Question text']}
+                                                        </p>
+                                                    </div>
+                                                ))}
+
+                                            {uniqueVocabList.filter(item => item['Date']?.startsWith(selectedDate)).length === 0 && (
+                                                <div className="text-center py-8 text-gray-500">
+                                                    No vocabulary found for this date.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 border-t border-gray-800 bg-[#1A1D24] text-center">
+                                        <p className="text-xs text-gray-500">
+                                            Total: <span className="text-white font-bold">{uniqueVocabList.filter(item => item['Date']?.startsWith(selectedDate)).length}</span> words learned
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     <Card title="Score Trends (HW2 vs HW3)" className="min-h-[350px]">
                         <div className="h-[280px] w-full">
